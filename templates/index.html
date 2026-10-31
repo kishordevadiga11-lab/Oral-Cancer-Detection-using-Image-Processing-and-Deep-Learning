@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Oral Cancer Detection System</title>
+
+    <style>
+
+        /* =====================================================
+           GLOBAL
+        ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3eee2;
+            color: #243c38;
+        }
+
+        .page {
+            width: 100%;
+            min-height: 100vh;
+            padding: 28px 35px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1250px;
+            margin: auto;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 38px;
+            font-weight: 700;
+            color: #174f4b;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            font-size: 15px;
+            color: #68736f;
+        }
+
+
+        /* =====================================================
+           UPLOAD BAR
+        ===================================================== */
+
+        .upload-section {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .upload-form {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            width: 100%;
+            padding: 10px;
+
+            background: #fffaf0;
+            border: 1px solid #d9d1c0;
+            border-radius: 15px;
+
+            box-shadow:
+                0 4px 12px rgba(55, 65, 60, 0.08);
+        }
+
+
+        /* =====================================================
+           FILE AREA
+        ===================================================== */
+
+        .file-area {
+            flex: 1;
+            position: relative;
+        }
+
+        .file-label {
+            width: 100%;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 0 16px;
+
+            background: #f7f2e7;
+            border: 1px solid #d4ccbb;
+            border-radius: 10px;
+
+            color: #49635e;
+            font-size: 14px;
+
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .file-label:hover {
+            background: #eee8da;
+            border-color: #9fb5ae;
+        }
+
+        .file-icon {
+            font-size: 19px;
+        }
+
+        #file-text {
+            color: #65736f;
+
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+
+        /* =====================================================
+           HIDE DEFAULT FILE INPUT
+        ===================================================== */
+
+        .file-area input[type="file"] {
+            display: none;
+        }
+
+
+        /* =====================================================
+           ANALYZE BUTTON
+        ===================================================== */
+
+        .analyze-button {
+            height: 48px;
+            padding: 0 28px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #356b63;
+            color: white;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            cursor: pointer;
+            white-space: nowrap;
+
+            transition: 0.2s;
+        }
+
+        .analyze-button:hover {
+            background: #285850;
+        }
+
+        .analyze-button:active {
+            transform: scale(0.98);
+        }
+
+        .analyze-button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+
+        /* =====================================================
+           LOADING
+        ===================================================== */
+
+        .loading {
+            display: none;
+
+            margin-top: 10px;
+
+            text-align: center;
+
+            color: #49635e;
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           ERROR MESSAGE
+        ===================================================== */
+
+        .error-message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+
+            background: #f9e5df;
+
+            border: 1px solid #e2b8ad;
+            border-radius: 10px;
+
+            color: #963e30;
+            font-size: 13px;
+
+            text-align: center;
+        }
+
+
+        /* =====================================================
+           MAIN RESULT CARD
+        ===================================================== */
+
+        .main-card {
+            width: 100%;
+            padding: 24px;
+
+            background: #fffaf0;
+
+            border: 1px solid #dcd3c1;
+            border-radius: 22px;
+
+            box-shadow:
+                0 8px 25px rgba(55, 65, 60, 0.10);
+        }
+
+
+        /* =====================================================
+           RESULT HEADER
+        ===================================================== */
+
+        .result-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+
+            border-bottom: 1px solid #ded6c6;
+        }
+
+        .result-heading h2 {
+            margin: 0;
+
+            font-size: 21px;
+            color: #174f4b;
+        }
+
+
+        /* =====================================================
+           RISK BADGE
+        ===================================================== */
+
+        .risk {
+            padding: 8px 17px;
+
+            border-radius: 20px;
+
+            background: #f7e1db;
+            color: #963e30;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+
+        /* =====================================================
+           FOUR BOX GRID
+        ===================================================== */
+
+        .four-boxes {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+
+            gap: 18px;
+
+            width: 100%;
+        }
+
+
+        /* =====================================================
+           BOX
+        ===================================================== */
+
+        .box {
+            min-height: 330px;
+
+            padding: 18px;
+
+            background: #fffdf7;
+
+            border: 1px solid #dcd4c4;
+            border-radius: 17px;
+
+            box-shadow:
+                0 3px 10px rgba(60, 70, 65, 0.05);
+        }
+
+
+        /* =====================================================
+           BOX HEADER
+        ===================================================== */
+
+        .box-header {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            margin-bottom: 14px;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #e1eee9;
+
+            font-size: 19px;
+        }
+
+        .box-header h3 {
+            margin: 0;
+
+            color: #174f4b;
+
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .box-header p {
+            margin: 3px 0 0;
+
+            color: #78827f;
+
+            font-size: 12px;
+        }
+
+
+        /* =====================================================
+           INFO BUTTON
+        ===================================================== */
+
+        .info-button {
+            margin-left: auto;
+
+            flex-shrink: 0;
+
+            width: 29px;
+            height: 29px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid #b9c8c2;
+            border-radius: 50%;
+
+            background: #f1f6f3;
+            color: #356b63;
+
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: all 0.2s ease;
+        }
+
+        .info-button:hover {
+            background: #356b63;
+            border-color: #356b63;
+
+            color: white;
+
+            transform: scale(1.05);
+        }
+
+        .info-button:active {
+            transform: scale(0.95);
+        }
+
+
+        /* =====================================================
+           INFO POPUP
+        ===================================================== */
+
+        .info-popup {
+            display: none;
+
+            position: absolute;
+
+            top: 45px;
+            right: 0;
+
+            width: 310px;
+
+            padding: 16px 17px;
+
+            background: #fffaf0;
+
+            border: 1px solid #d5ccbb;
+            border-radius: 13px;
+
+            box-shadow:
+                0 10px 28px rgba(40, 50, 45, 0.18);
+
+            z-index: 1000;
+
+            text-align: left;
+        }
+
+        .info-popup.show {
+            display: block;
+
+            animation: infoAppear 0.18s ease;
+        }
+
+        .info-popup h4 {
+            margin: 0 0 8px;
+
+            color: #174f4b;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .info-popup p {
+            margin: 0;
+
+            color: #68736f;
+
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .info-popup strong {
+            color: #356b63;
+        }
+
+        @keyframes infoAppear {
+
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        }
+
+
+        /* =====================================================
+           IMAGE AREA
+        ===================================================== */
+
+        .image-area {
+            width: 100%;
+            height: 250px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            border-radius: 13px;
+
+            background: #eee8da;
+        }
+
+        .image-area img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+
+            display: block;
+        }
+
+
+        /* =====================================================
+           SCORE-CAM
+        ===================================================== */
+
+        .scorecam-area {
+            height: 225px;
+
+            background: #f5f0e5;
+        }
+
+        .scorecam-area img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+        }
+
+
+        /* =====================================================
+           SCORE-CAM LEGEND
+        ===================================================== */
+
+        .attention {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            margin-top: 9px;
+
+            font-size: 11px;
+
+            color: #6e7774;
+        }
+
+        .gradient {
+            flex: 1;
+
+            height: 10px;
+
+            border-radius: 10px;
+
+            background: linear-gradient(
+                to right,
+                #173e9a,
+                #25a8d8,
+                #54e08a,
+                #f4ed3c,
+                #ff9e26,
+                #d92c20
+            );
+        }
+
+
+        /* =====================================================
+           TECHNICAL DETAILS
+        ===================================================== */
+
+        .technical-table {
+            width: 100%;
+
+            overflow: hidden;
+
+            border: 1px solid #ded7c8;
+            border-radius: 11px;
+        }
+
+        .technical-row {
+            display: grid;
+
+            grid-template-columns: 1fr 1.25fr;
+
+            min-height: 40px;
+
+            border-bottom: 1px solid #ded7c8;
+        }
+
+        .technical-row:last-child {
+            border-bottom: none;
+        }
+
+        .technical-row div {
+            padding: 10px 12px;
+
+            font-size: 13px;
+        }
+
+        .technical-row div:first-child {
+            background: #faf6ec;
+
+            color: #49635e;
+        }
+
+        .technical-row div:last-child {
+            background: #fffdf7;
+
+            color: #273d39;
+
+            font-weight: 600;
+        }
+
+
+        /* =====================================================
+           CHECK ANOTHER IMAGE
+        ===================================================== */
+
+        .button-area {
+            text-align: center;
+
+            margin-top: 22px;
+        }
+
+        .check-button {
+            display: inline-block;
+
+            padding: 11px 25px;
+
+            border: 1px solid #4d8279;
+
+            border-radius: 25px;
+
+            background: #356b63;
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 14px;
+
+            transition: 0.2s;
+        }
+
+        .check-button:hover {
+            background: #285850;
+        }
+
+
+        /* =====================================================
+           EMPTY STATE
+        ===================================================== */
+
+        .empty-card {
+            padding: 45px 25px;
+
+            text-align: center;
+
+            background: #fffaf0;
+
+            border: 1px solid #dcd3c1;
+            border-radius: 20px;
+
+            box-shadow:
+                0 5px 18px rgba(55, 65, 60, 0.07);
+        }
+
+        .empty-icon {
+            width: 60px;
+            height: 60px;
+
+            margin: 0 auto 15px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #e1eee9;
+
+            font-size: 28px;
+        }
+
+        .empty-card h2 {
+            margin: 0 0 8px;
+
+            color: #174f4b;
+
+            font-size: 21px;
+        }
+
+        .empty-card p {
+            margin: 0;
+
+            color: #737c78;
+
+            font-size: 14px;
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .page {
+                padding: 18px;
+            }
+
+            .header h1 {
+                font-size: 29px;
+            }
+
+            .header p {
+                font-size: 13px;
+            }
+
+            .upload-form {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+            .analyze-button {
+                width: 100%;
+            }
+
+            .four-boxes {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+
+            .box {
+                min-height: auto;
+            }
+
+            .result-heading {
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 10px;
+            }
+
+            .image-area {
+                height: 230px;
+            }
+
+            .scorecam-area {
+                height: 210px;
+            }
+
+        }
+
+
+        /* =====================================================
+           SMALL MOBILE
+        ===================================================== */
+
+        @media (max-width: 480px) {
+
+            .page {
+                padding: 12px;
+            }
+
+            .main-card {
+                padding: 14px;
+            }
+
+            .box {
+                padding: 13px;
+            }
+
+            .box-header h3 {
+                font-size: 16px;
+            }
+
+            .technical-row {
+                grid-template-columns: 1fr;
+            }
+
+            .technical-row div {
+                padding: 7px 10px;
+            }
+
+            .info-popup {
+                width: 245px;
+
+                right: -5px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="page">
+
+    <div class="container">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <div class="header">
+
+            <h1>
+                Oral Cancer Detection System
+            </h1>
+
+            <p>
+                AI powered screening for a healthier tomorrow
+            </p>
+
+        </div>
+
+
+
+        <!-- =================================================
+             ERROR
+        ================================================== -->
+
+        {% if error %}
+
+        <div class="error-message">
+            {{ error }}
+        </div>
+
+        {% endif %}
+
+
+
+        <!-- =================================================
+             IMAGE UPLOAD BAR
+        ================================================== -->
+
+        <div class="upload-section">
+
+            <form
+                action="/"
+                method="POST"
+                enctype="multipart/form-data"
+                class="upload-form"
+                onsubmit="showLoading()"
+            >
+
+
+                <!-- FILE SELECT -->
+
+                <div class="file-area">
+
+                    <label
+                        for="image"
+                        class="file-label"
+                    >
+
+                        <span class="file-icon">
+                            📁
+                        </span>
+
+                        <span id="file-text">
+                            Choose an oral image
+                        </span>
+
+                    </label>
+
+
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept="image/*"
+                        required
+                        onchange="showFileName(this)"
+                    >
+
+                </div>
+
+
+
+                <!-- ANALYZE BUTTON -->
+
+                <button
+                    type="submit"
+                    class="analyze-button"
+                    id="analyzeBtn"
+                >
+
+                    🔍 Analyze Image
+
+                </button>
+
+            </form>
+
+
+            <div
+                class="loading"
+                id="loading"
+            >
+                Analyzing image... Please wait.
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             RESULT
+        ================================================== -->
+
+        {% if report %}
+
+
+        <div class="main-card">
+
+
+            <!-- =============================================
+                 RESULT HEADER
+            ============================================== -->
+
+            <div class="result-heading">
+
+                <h2>
+                    Screening Result
+                </h2>
+
+            </div>
+
+
+
+            <!-- =============================================
+                 FOUR BOXES
+            ============================================== -->
+
+            <div class="four-boxes">
+
+
+                <!-- =========================================
+                     BOX 1 — INPUT IMAGE
+                ========================================== -->
+
+                <div class="box">
+
+                    <div class="box-header">
+
+                        <div class="icon">
+                            📤
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Original Image
+                            </h3>
+
+                            <p>
+                                The image you uploaded for analysis.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="image-area">
+
+                        <img
+                            src="/{{ image_path }}"
+                            alt="Input oral image"
+                        >
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     BOX 2 — ORIGINAL / PROCESSED IMAGE
+                ========================================== -->
+
+                <div class="box">
+
+                    <div class="box-header">
+
+                        <div class="icon">
+                            🖼️
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Affected Region
+                            </h3>
+
+                            <p>
+                                Area identified for analysis.
+                            </p>
+
+                        </div>
+
+
+                        <!-- INFO BUTTON -->
+
+                        <button
+                            type="button"
+                            class="info-button"
+                            onclick="toggleInfo('originalInfo')"
+                            aria-label="Information about Original Image"
+                        >
+                            i
+                        </button>
+
+
+                        <!-- INFO POPUP -->
+
+                        <div
+                            class="info-popup"
+                            id="originalInfo"
+                        >
+
+                            <h4>
+                                What does this image show?
+                            </h4>
+
+                            <p>
+                                This image shows the area of the mouth
+                                identified by the system for further
+                                analysis. The <strong>marked area</strong>
+                                indicates the specific region detected
+                                as an area of interest. This helps the
+                                system focus on the relevant part of the
+                                image during analysis.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="image-area">
+
+                        <img
+                            src="/{{ images.lesion }}"
+                            alt="Processed oral image with marked area"
+                        >
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     BOX 3 — SCORE-CAM / AI FOCUSED
+                ========================================== -->
+
+                <div class="box">
+
+                    <div class="box-header">
+
+                        <div class="icon">
+                            🔍
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                AI Focused
+                            </h3>
+
+                            <p>
+                                Score-CAM visualization of the AI focus.
+                            </p>
+
+                        </div>
+
+
+                        <!-- INFO BUTTON -->
+
+                        <button
+                            type="button"
+                            class="info-button"
+                            onclick="toggleInfo('scorecamInfo')"
+                            aria-label="Information about AI Focused"
+                        >
+                            i
+                        </button>
+
+
+                        <!-- INFO POPUP -->
+
+                        <div
+                            class="info-popup"
+                            id="scorecamInfo"
+                        >
+
+                            <h4>
+                                What does the highlighted area mean?
+                            </h4>
+
+                            <p>
+                                The highlighted area shows the part of
+                                the image where the AI model focused most
+                                when making its prediction. Stronger colors
+                                indicate areas that had more influence on
+                                the AI's decision. This visualization helps
+                                explain the model's prediction.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="image-area scorecam-area">
+
+                        <img
+                            src="/{{ advanced_images.scorecam }}"
+                            alt="Score-CAM visualization"
+                        >
+
+                    </div>
+
+
+                    <!-- SCORE-CAM LEGEND -->
+
+                    <div class="attention">
+
+                        <span>
+                            Low
+                        </span>
+
+                        <div class="gradient"></div>
+
+                        <span>
+                            High
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =========================================
+                     BOX 4 — TECHNICAL DETAILS
+                ========================================== -->
+
+                <div class="box">
+
+                    <div class="box-header">
+
+                        <div class="icon">
+                            📊
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Report Analysis
+                            </h3>
+
+                            <p>
+                                Model prediction and performance metrics.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="technical-table">
+
+
+                        <!-- PREDICTION -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                Prediction
+                            </div>
+
+                            <div>
+                                {{ report.prediction }}
+                            </div>
+
+                        </div>
+
+
+                        <!-- LESION AREA -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                Detected Lesion Area
+                            </div>
+
+                            <div>
+                                {{ report.lesion_area }} pixels
+                            </div>
+
+                        </div>
+
+
+                        <!-- AREA AFFECTED -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                Area Affected
+                            </div>
+
+                            <div>
+                                {{ report.lesion_percent }}%
+                            </div>
+
+                        </div>
+
+
+                        <!-- ACCURACY -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                Model Accuracy
+                            </div>
+
+                            <div>
+                                {{ report.metrics.accuracy }}%
+                            </div>
+
+                        </div>
+
+
+                        <!-- PRECISION -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                Precision
+                            </div>
+
+                            <div>
+                                {{ report.metrics.precision }}%
+                            </div>
+
+                        </div>
+
+
+                        <!-- F1 SCORE -->
+
+                        <div class="technical-row">
+
+                            <div>
+                                F1 Score
+                            </div>
+
+                            <div>
+                                {{ report.metrics.f1_score }}%
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =============================================
+                 CHECK ANOTHER IMAGE
+            ============================================== -->
+
+            <div class="button-area">
+
+                <a
+                    href="/"
+                    class="check-button"
+                >
+                    ↻ Check Another Image
+                </a>
+
+            </div>
+
+
+        </div>
+
+
+        {% else %}
+
+
+        <!-- =================================================
+             BEFORE ANALYSIS
+        ================================================== -->
+
+        <div class="empty-card">
+
+            <div class="empty-icon">
+                🩺
+            </div>
+
+            <h2>
+                Ready for Analysis
+            </h2>
+
+            <p>
+                Select an oral image above and click
+                <strong>Analyze Image</strong> to begin.
+            </p>
+
+        </div>
+
+
+        {% endif %}
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+    /* =====================================================
+       SHOW SELECTED FILE NAME
+    ===================================================== */
+
+    function showFileName(input) {
+
+        const fileText =
+            document.getElementById("file-text");
+
+
+        if (
+            input.files &&
+            input.files.length > 0
+        ) {
+
+            fileText.textContent =
+                input.files[0].name;
+
+        }
+
+        else {
+
+            fileText.textContent =
+                "Choose an oral image";
+
+        }
+
+    }
+
+
+
+    /* =====================================================
+       SHOW LOADING
+    ===================================================== */
+
+    function showLoading() {
+
+        const loading =
+            document.getElementById("loading");
+
+        const button =
+            document.getElementById("analyzeBtn");
+
+
+        loading.style.display = "block";
+
+        button.disabled = true;
+
+        button.textContent =
+            "⏳ Analyzing...";
+
+    }
+
+
+
+    /* =====================================================
+       INFO BUTTON POPUPS
+    ===================================================== */
+
+    function toggleInfo(id) {
+
+        const popup =
+            document.getElementById(id);
+
+
+        /* Close all other popups */
+
+        document
+            .querySelectorAll(".info-popup")
+            .forEach(function(item) {
+
+                if (item.id !== id) {
+
+                    item.classList.remove("show");
+
+                }
+
+            });
+
+
+        /* Open / close selected popup */
+
+        popup.classList.toggle("show");
+
+    }
+
+
+
+    /* =====================================================
+       CLOSE POPUP WHEN CLICKING OUTSIDE
+    ===================================================== */
+
+    document.addEventListener("click", function(event) {
+
+        if (
+            !event.target.closest(".info-button") &&
+            !event.target.closest(".info-popup")
+        ) {
+
+            document
+                .querySelectorAll(".info-popup")
+                .forEach(function(popup) {
+
+                    popup.classList.remove("show");
+
+                });
+
+        }
+
+    });
+
+
+</script>
+
+
+</body>
+
+</html>
